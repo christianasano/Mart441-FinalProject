@@ -1,1 +1,2 @@
-# Mart441-FinalProject
+# Mart441-FinalProject 
+The final project for me was a combination of work from earlier in the semseter where I felt more comfortable being craetive in the JS and HTML cooding rsather than the last few weeks working more with 3d and more interactive media. I deicded to make a basic minimal game that has characteristics that are odly satisfiying. The project was so fun to experiement and have freedom to create anything that works. 
