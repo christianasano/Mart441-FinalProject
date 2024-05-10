@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Collect the Shapes Game</title>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f0f0f0;
+            background-image: url('images/cover.jpg'); /* Replace 'your-background-image.jpg' with the actual URL or path to your image */
+            font-family: Arial, sans-serif;
+        }
+        canvas {
+            border: 10px solid #333;
+            background-color: rgb(255, 255, 255);
+            box-shadow: 0px 0px 20px rgba(0, 0, 0, 0.5);
+        }
+        button {
+            margin-top: 20px;
+            padding: 10px 20px;
+            font-size: 18px;
+            background-color: #4CAF50;
+            color: rgb(231, 20, 185);
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+        .game-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 20px;
+            background-color: #120e97;
+            border-top: 2px solid #333;
+            font-size: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <h1 style="text-align: center;color: aqua;">Collect the Shapes Game</h1>
+        <canvas id="gameCanvas" width="800" height="600"></canvas>
+        <div class="game-info">
+            
+            <button id="restartButton">Restart Game</button>
+        </div>
+    </div>
+    <audio src="audio/ Space and Time .mp3" controls></audio>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const canvas = document.getElementById('gameCanvas');
+            const ctx = canvas.getContext('2d');
+
+            const player = {
+                x: 50,
+                y: 50,
+                width: 20,
+                height: 20,
+                speed: 10
+            };
+
+            const shapes = ['circle', 'triangle', 'square', 'star'];
+            const colors = ['#ff5733', '#33ff57', '#5733ff', '#ffdd33']; // Colors for different shapes
+            const stars = [];
+            const starCount = 10; // Increased number of stars
+
+            let score = 0;
+            let startTime = Date.now();
+            let gameOver = false;
+            let timerInterval;
+
+            function drawPlayer() {
+                ctx.fillStyle = '#333'; // Player color
+                ctx.fillRect(player.x, player.y, player.width, player.height);
+            }
+
+            function drawStars() {
+                stars.forEach((star) => {
+                    if (!star.collected) {
+                        ctx.fillStyle = colors[star.colorIndex];
+                        drawShape(star);
+                    }
+                });
+            }
+
+            function generateStars() {
+                for (let i = 0; i < starCount; i++) {
+                    const star = {
+                        x: Math.random() * (canvas.width - 20),
+                        y: Math.random() * (canvas.height - 20),
+                        shape: shapes[Math.floor(Math.random() * shapes.length)],
+                        size: Math.random() * 20 + 10, // Random size
+                        colorIndex: Math.floor(Math.random() * colors.length), // Random color index
+                        collected: false
+                    };
+                    stars.push(star);
+                }
+            }
+
+            function clearCanvas() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+            }
+
+            function update() {
+                clearCanvas();
+                ctx.fillStyle = 'linear-gradient(to right, #4CAF50, #333)'; // Dynamic background
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                drawStars();
+                drawPlayer();
+                drawScore();
+                drawTime();
+                if (!gameOver) {
+                    checkGameEnd();
+                    requestAnimationFrame(update);
+                }
+            }
+
+            function movePlayer(direction) {
+                if (!gameOver) {
+                    switch (direction) {
+                        case 'ArrowUp':
+                            player.y -= player.speed;
+                            break;
+                        case 'ArrowDown':
+                            player.y += player.speed;
+                            break;
+                        case 'ArrowLeft':
+                            player.x -= player.speed;
+                            break;
+                        case 'ArrowRight':
+                            player.x += player.speed;
+                            break;
+                    }
+                }
+            }
+
+            function checkCollision() {
+                stars.forEach((star, index) => {
+                    if (!star.collected && player.x < star.x + star.size &&
+                        player.x + player.width > star.x &&
+                        player.y < star.y + star.size &&
+                        player.y + player.height > star.y) {
+                        star.collected = true;
+                        score++;
+                        stars.splice(index, 1);
+                    }
+                });
+            }
+
+            function drawShape(star) {
+                ctx.beginPath();
+                switch (star.shape) {
+                    case 'circle':
+                        ctx.arc(star.x, star.y, star.size / 2, 0, Math.PI * 2);
+                        break;
+                    case 'triangle':
+                        ctx.moveTo(star.x, star.y);
+                        ctx.lineTo(star.x + star.size, star.y);
+                        ctx.lineTo(star.x + star.size / 2, star.y + star.size);
+                        ctx.closePath();
+                        break;
+                    case 'square':
+                        ctx.fillRect(star.x, star.y, star.size, star.size);
+                        break;
+                    case 'star':
+                        ctx.moveTo(star.x, star.y - star.size / 2);
+                        ctx.lineTo(star.x + star.size / 3, star.y + star.size / 3);
+                        ctx.lineTo(star.x - star.size / 3, star.y + star.size / 3);
+                        ctx.lineTo(star.x + star.size / 3, star.y + star.size / 2);
+                        ctx.lineTo(star.x, star.y + star.size / 4);
+                        ctx.lineTo(star.x - star.size / 3, star.y + star.size / 2);
+                        ctx.closePath();
+                        break;
+                }
+                ctx.fill();
+            }
+
+            function drawScore() {
+                
+                ctx.font = '24px Arial';
+                ctx.fillText('Score: ' + score, 20, 30);
+            }
+
+            function drawTime() {
+    const currentTime = Math.floor((Date.now() - startTime) / 1000);
+    ctx.fillStyle = '#fff';
+    ctx.font = '24px Arial';
+    ctx.fillText('Time: ' + currentTime + 's', canvas.width - 150, 70); // Adjusted position and font size
+}
+
+
+            function checkGameEnd() {
+                if (score === starCount) {
+                    gameOver = true;
+                    clearInterval(timerInterval);
+                    ctx.fillStyle = '#fff';
+                    ctx.font = '36px Arial';
+                    ctx.fillText('Game Over! You collected all shapes!', canvas.width / 2 - 300, canvas.height / 2);
+                }
+            }
+
+            document.addEventListener('keydown', (e) => {
+                movePlayer(e.key);
+                checkCollision();
+                update();
+            });
+
+            document.getElementById('restartButton').addEventListener('click', () => {
+                score = 0;
+                startTime = Date.now();
+                player.x = 50;
+                player.y = 50;
+                stars.length = 0;
+                generateStars();
+                gameOver = false;
+                update();
+            });
+
+            generateStars();
+            update();
+        });
+    </script>
+</body>
+</html>

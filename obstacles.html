@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Moving Obstacles Game</title>
+    <style>
+        canvas {
+            border: 2px solid black;
+            display: block;
+            margin: 0 auto;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="gameCanvas" width="800" height="600"></canvas>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+
+        const player = {
+            x: 50,
+            y: canvas.height / 2,
+            width: 20,
+            height: 20,
+            speed: 5
+        };
+
+        let obstacles = [];
+
+        function drawPlayer() {
+            ctx.fillStyle = 'blue';
+            ctx.fillRect(player.x, player.y, player.width, player.height);
+        }
+
+        function drawObstacles() {
+            ctx.fillStyle = 'red';
+            obstacles.forEach((obstacle) => {
+                ctx.fillRect(obstacle.x, obstacle.y, obstacle.width, obstacle.height);
+            });
+        }
+
+        function generateObstacle() {
+            const obstacle = {
+                x: canvas.width,
+                y: Math.random() * (canvas.height - 30) + 15,
+                width: 20,
+                height: 30,
+                speed: Math.random() * 3 + 1 // Random speed between 1 and 4
+            };
+            obstacles.push(obstacle);
+        }
+
+        function clearCanvas() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+        }
+
+        function update() {
+            clearCanvas();
+
+            // Move player
+            if (player.y > 0 && player.y < canvas.height - player.height) {
+                player.y += player.speed;
+            }
+
+            drawPlayer();
+            drawObstacles();
+
+            // Move obstacles
+            obstacles.forEach((obstacle) => {
+                obstacle.x -= obstacle.speed;
+
+                // Check collision
+                if (player.x < obstacle.x + obstacle.width &&
+                    player.x + player.width > obstacle.x &&
+                    player.y < obstacle.y + obstacle.height &&
+                    player.y + player.height > obstacle.y) {
+                    alert('Game Over! You collided with an obstacle.');
+                    obstacles = []; // Reset obstacles
+                }
+            });
+
+            // Generate new obstacle
+            if (Math.random() < 0.02) { // Adjust the probability based on game speed
+                generateObstacle();
+            }
+
+            requestAnimationFrame(update);
+        }
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowUp' && player.y > 0) {
+                player.speed = -5;
+            } else if (e.key === 'ArrowDown' && player.y < canvas.height - player.height) {
+                player.speed = 5;
+            }
+        });
+
+        document.addEventListener('keyup', () => {
+            player.speed = 0;
+        });
+
+        update(); // Start the game loop
+    </script>
+</body>
+</html>
